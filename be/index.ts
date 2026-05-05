@@ -12,12 +12,8 @@ app.use(express.json())
 app.post('/convo', async (req, res) => {
      try {
 
-          const query = req.body?.query
 
-          if (!query) {
-               res.status(400).json({ error: "Query missing" });
-               return;
-          }
+          const query = req.body.query
 
           const webSearch = await client.search(query, {
                searchDepth: "basic"
@@ -28,7 +24,7 @@ app.post('/convo', async (req, res) => {
 
 
           const result = streamText({
-               model: 'deepseek/deepseek-v4-flash',
+               model: 'openai/gpt-5.4',
                prompt: prompt,
                system: SYSTEM_PROMPT,
                //lets generate some structure data means locking th eformat of the res from the ai
@@ -40,36 +36,25 @@ app.post('/convo', async (req, res) => {
                // }),
           });
 
-          res.setHeader('Content-Type', 'text/event-stream');
-          res.setHeader('Cache-Control', 'no-cache');
-          res.setHeader('Connection', 'keep-alive');
-          res.flushHeaders();
+          res.header('Cache-Control', 'no-cache')
+          res.header('Content-Type', 'text/event-stream')
 
-          let fullText = "";
 
           for await (const partialObject of result.textStream) {
                console.log(partialObject);
-
-               fullText += partialObject;
-
-               res.write(`data: ${partialObject}\n\n`);
+               
+               res.write(partialObject);
           }
 
-          const followUps = [...fullText.matchAll(/<question>(.*?)<\/question>/g)]
-               .map(match => match[1]);
+          res.write("-----trust me bro and ------")
 
-          res.write(`event: followups\n`);
-          res.write(`data: ${JSON.stringify(followUps)}\n\n`);
-
-          res.write(`event: sources\n`);
-          res.write(`data: ${JSON.stringify(webSearchResult)}\n\n`);
-
-          res.write(`event: done\n`);
-          res.write(`data: end\n\n`);
+          webSearchResult.forEach(result => res.write(JSON.stringify(result)))
 
           res.end()
-     } catch (err) {
+     }catch(err){
           console.log(err);
+          
+          
      }
 })
 
