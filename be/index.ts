@@ -76,7 +76,28 @@ app.post('/convo', async (req, res) => {
           
           
      }
+
 })
+app.post('/followups', async(req, res)=>{
+          const follow = req.body.query
+          const webSearch = await client.search(follow,{
+               searchDepth:'basic'
+          })
+          const webresult = webSearch.results;
+
+          res.header('Cache-Control', 'no-cache')
+          res.header('Content-Type', 'text/event-stream')
+          res.header('Connection', 'keep-alive')
+
+          const prompt = PROMPT_TEMPLATE.replace("{{FOLLOW_UPS_PROMPT}}", JSON.stringify(webresult)).replace("{{USER_QUERY}}", follow);
+
+          streamText({
+               model: 'google/gemini-2.5-flash-lite',
+               prompt: prompt,
+               system: SYSTEM_PROMPT,
+          })
+
+     })
 //37:57
 
 app.listen(3000)
