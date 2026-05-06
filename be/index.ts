@@ -20,11 +20,15 @@ app.post('/convo', async (req, res) => {
           })
           const webSearchResult = webSearch.results
 
+          res.header('Cache-Control', 'no-cache')
+          res.header('Content-Type', 'text/event-stream')
+          res.header('Connection', 'keep-alive')
+
           const prompt = PROMPT_TEMPLATE.replace("{{WEB_SEARCH_RESULTS}}", JSON.stringify(webSearchResult)).replace("{{USER_QUERY}}", query)
 
 
           const result = streamText({
-               model: 'openai/gpt-5.4',
+               model: 'deepseek/deepseek-v4-pro',
                prompt: prompt,
                system: SYSTEM_PROMPT,
                //lets generate some structure data means locking th eformat of the res from the ai
@@ -34,21 +38,37 @@ app.post('/convo', async (req, res) => {
                //           ans : z.string()
                //      }),
                // }),
+          //
           });
 
-          res.header('Cache-Control', 'no-cache')
-          res.header('Content-Type', 'text/event-stream')
-
+        
+          let buffer = ""
 
           for await (const partialObject of result.textStream) {
-               console.log(partialObject);
-               
-               res.write(partialObject);
+
+               buffer += partialObject
+
+               let lines = buffer.split("\n")
+
+               buffer = lines.pop()
+
+               for (const line of lines) {
+                    console.log(line);
+                    res.write(`data: ${line}\n\n`);
+               }
           }
 
-          res.write("-----trust me bro and ------")
+          if (buffer.trim()) {
+               res.write(`data: ${buffer}\n\n`);
+          }
 
-          webSearchResult.forEach(result => res.write(JSON.stringify(result)))
+          res.write("\n <trustmebro> \n")
+
+          res.write(JSON.stringify(webSearchResult.map(result=>({
+               url: result.url
+          }))))
+
+          res.write("\n<trustmebro/>\n")
 
           res.end()
      }catch(err){
@@ -57,5 +77,6 @@ app.post('/convo', async (req, res) => {
           
      }
 })
+//37:57
 
 app.listen(3000)
