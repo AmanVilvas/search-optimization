@@ -1,10 +1,13 @@
+import 'dotenv/config';
 import { tavily } from '@tavily/core'
 import express from "express"
-const client = tavily({ apiKey: process.env.TAVILY_API });
 import { Output, streamText } from 'ai'
 import { PROMPT_TEMPLATE, SYSTEM_PROMPT } from './prompt';
-import z from "zod"
+// import z from "zod"
 
+const tavilyKey = process.env.TAVILY_API
+
+const client = tavily({ apiKey: tavilyKey });
 
 const app = express()
 app.use(express.json())
@@ -28,7 +31,7 @@ app.post('/convo', async (req, res) => {
 
 
           const result = streamText({
-               model: 'deepseek/deepseek-v4-pro',
+               model: 'stepfun/step-3.7-flash',
                prompt: prompt,
                system: SYSTEM_PROMPT,
                //lets generate some structure data means locking th eformat of the res from the ai
@@ -92,7 +95,7 @@ app.post('/followups', async(req, res)=>{
           const prompt = PROMPT_TEMPLATE.replace("{{FOLLOW_UPS_PROMPT}}", JSON.stringify(webresult)).replace("{{USER_QUERY}}", follow);
 
           streamText({
-               model: 'google/gemini-2.5-flash-lite',
+               model: 'deepseek/deepseek-v4-pro',
                prompt: prompt,
                system: SYSTEM_PROMPT,
           })
@@ -100,4 +103,8 @@ app.post('/followups', async(req, res)=>{
      })
 //37:57
 
-app.listen(3000)
+app.listen(3000, ()=>{
+     console.log('server is cooking smthg');
+     
+});
+

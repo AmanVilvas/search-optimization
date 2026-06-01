@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "tsx": "^4.22.4"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -13,6 +14,7 @@
     "@tavily/core": "^0.7.2",
     "@types/express": "^5.0.6",
     "ai": "^6.0.168",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   }
 }
