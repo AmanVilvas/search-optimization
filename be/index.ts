@@ -3,6 +3,9 @@ import { tavily } from '@tavily/core'
 import express from "express"
 import { Output, streamText } from 'ai'
 import { PROMPT_TEMPLATE, SYSTEM_PROMPT } from './prompt';
+import { prisma } from './db';
+import { middleware } from './middleware';
+import  cors  from 'cors';
 // import z from "zod"
 
 const tavilyKey = process.env.TAVILY_API
@@ -10,9 +13,19 @@ const tavilyKey = process.env.TAVILY_API
 const client = tavily({ apiKey: tavilyKey });
 
 const app = express()
+app.use(cors())
 app.use(express.json())
 
-app.post('/convo', async (req, res) => {
+
+
+// console.log(res);
+
+app.get('/convo', middleware, async(req,res)=>{
+     res.json({
+          userId: req.userId
+     })
+})
+app.post('/ask', async (req, res) => {
      try {
 
 
@@ -103,7 +116,7 @@ app.post('/followups', async(req, res)=>{
      })
 //37:57
 
-app.listen(3000, ()=>{
+app.listen(3001, ()=>{
      console.log('server is cooking smthg');
      
 });
